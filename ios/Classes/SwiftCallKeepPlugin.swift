@@ -148,10 +148,10 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
         
         let uuid = UUID(uuidString: data.uuid)
         
-        configureAudioSession()
+        // configureAudioSession()
         self.sharedProvider?.reportNewIncomingCall(with: uuid!, update: callUpdate) { error in
             if(error == nil) {
-                self.configureAudioSession()
+                // self.configureAudioSession()
                 let call = Call(uuid: uuid!, data: data)
                 call.handle = data.handle
                 self.callManager?.addCall(call)
@@ -293,18 +293,18 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
         NotificationCenter.default.post(name: AVAudioSession.interruptionNotification, object: self, userInfo: userInfo)
     }
     
-    func configureAudioSession(){
-        let session = AVAudioSession.sharedInstance()
-        do{
-            try session.setCategory(AVAudioSession.Category.playAndRecord, options: AVAudioSession.CategoryOptions.allowBluetooth)
-            try session.setMode(self.getAudioSessionMode(data?.audioSessionMode))
-            try session.setActive(data?.audioSessionActive ?? true)
-            try session.setPreferredSampleRate(data?.audioSessionPreferredSampleRate ?? 44100.0)
-            try session.setPreferredIOBufferDuration(data?.audioSessionPreferredIOBufferDuration ?? 0.005)
-        }catch{
-            print(error)
-        }
-    }
+    // func configureAudioSession(){
+    //     let session = AVAudioSession.sharedInstance()
+    //     do{
+    //         try session.setCategory(AVAudioSession.Category.playAndRecord, options: AVAudioSession.CategoryOptions.allowBluetooth)
+    //         try session.setMode(self.getAudioSessionMode(data?.audioSessionMode))
+    //         try session.setActive(data?.audioSessionActive ?? true)
+    //         try session.setPreferredSampleRate(data?.audioSessionPreferredSampleRate ?? 44100.0)
+    //         try session.setPreferredIOBufferDuration(data?.audioSessionPreferredIOBufferDuration ?? 0.005)
+    //     }catch{
+    //         print(error)
+    //     }
+    // }
     
     func getAudioSessionMode(_ audioSessionMode: String?) -> AVAudioSession.Mode {
         var mode = AVAudioSession.Mode.default
@@ -360,7 +360,7 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
     public func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
         let call = Call(uuid: action.callUUID, data: self.data!, isOutGoing: true)
         call.handle = action.handle.value
-        configureAudioSession()
+        // configureAudioSession()
         call.hasStartedConnectDidChange = { [weak self] in
             self?.sharedProvider?.reportOutgoingCall(with: call.uuid, startedConnectingAt: call.connectData)
         }
@@ -379,7 +379,7 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
             return
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(1200)) {
-            self.configureAudioSession()
+            // self.configureAudioSession()
         }
         call.data.isAccepted = true
         self.answerCall = call
@@ -471,7 +471,7 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
         }
         self.answerCall?.ansCall(withAudioSession: audioSession) { _ in }
         senddefaultAudioInterruptionNofificationToStartAudioResource()
-        configureAudioSession()
+        // configureAudioSession()
         self.sendEvent(SwiftCallKeepPlugin.ACTION_CALL_TOGGLE_AUDIO_SESSION, ["answerCall": self.answerCall?.data.toJSON(), "outgoingCall": self.outgoingCall?.data.toJSON(), "isActivate": true ])
     }
     
