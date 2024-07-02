@@ -55,8 +55,7 @@ class CallKeep {
   ///  for VoIP - iOS only
   ///
   /// }
-  Stream<CallKeepEvent?> get onEvent =>
-      _eventChannel.receiveBroadcastStream().map(_handleCallKeepEvent);
+  Stream<CallKeepEvent?> get onEvent => _eventChannel.receiveBroadcastStream().map(_handleCallKeepEvent);
 
   CallKeep._internal();
   static final CallKeep _instance = CallKeep._internal();
@@ -89,6 +88,10 @@ class CallKeep {
     await _channel.invokeMethod("endCall", {'id': uuid});
   }
 
+  Future<void> connectCall(String uuid) async {
+    await _channel.invokeMethod("connectCall", {'id': uuid});
+  }
+
   /// End all calls.
   Future<void> endAllCalls() async {
     await _channel.invokeMethod("endAllCalls");
@@ -112,8 +115,7 @@ class CallKeep {
   /// On iOS: return deviceToken for VoIP.
   /// On Android: returns empty String
   Future<String> getDevicePushTokenVoIP() async {
-    return (await _channel.invokeMethod<String>("getDevicePushTokenVoIP")) ??
-        '';
+    return (await _channel.invokeMethod<String>("getDevicePushTokenVoIP")) ?? '';
   }
 
   CallKeepEvent _handleCallKeepEvent(dynamic data) {

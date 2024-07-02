@@ -5,109 +5,134 @@
 //  Created by Hien Nguyen on 07/10/2021.
 //
 
-import Foundation
 import CallKit
+import Foundation
 
 @available(iOS 10.0, *)
 class CallManager: NSObject {
-    
     private let callController = CXCallController()
     private var sharedProvider: CXProvider? = nil
     private(set) var calls = [Call]()
-    
-    
+
     func setSharedProvider(_ sharedProvider: CXProvider) {
         self.sharedProvider = sharedProvider
     }
-    
+
     func startCall(_ data: Data) {
-        let handle = CXHandle(type: self.getHandleType(data.handleType), value: data.handle)
+        let handle = CXHandle(type: getHandleType(data.handleType), value: data.handle)
         let uuid = UUID(uuidString: data.uuid)
         let startCallAction = CXStartCallAction(call: uuid!, handle: handle)
         startCallAction.isVideo = data.hasVideo
         let callTransaction = CXTransaction()
         callTransaction.addAction(startCallAction)
-        //requestCall
-        self.requestCall(callTransaction, action: "startCall", completion: { _ in
-            let callUpdate = CXCallUpdate()
-            callUpdate.remoteHandle = handle
-            callUpdate.supportsDTMF = data.supportsDTMF
-            callUpdate.supportsHolding = data.supportsHolding
-            callUpdate.supportsGrouping = data.supportsGrouping
-            callUpdate.supportsUngrouping = data.supportsUngrouping
-            callUpdate.hasVideo = data.hasVideo
-            callUpdate.localizedCallerName = data.callerName
-            self.sharedProvider?.reportCall(with: uuid!, updated: callUpdate)
+        // requestCall
+        requestCall(callTransaction, action: "startCall", completion: { _ in
+            // let callUpdate = CXCallUpdate()
+            // callUpdate.remoteHandle = handle
+            // callUpdate.supportsDTMF = data.supportsDTMF
+            // callUpdate.supportsHolding = data.supportsHolding
+            // callUpdate.supportsGrouping = data.supportsGrouping
+            // callUpdate.supportsUngrouping = data.supportsUngrouping
+            // callUpdate.hasVideo = data.hasVideo
+            // callUpdate.localizedCallerName = data.callerName
+            // // self.sharedProvider?.reportCall(with: uuid!, updated: callUpdate)
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.sharedProvider?.reportOutgoingCall(with: uuid!, connectedAt: nil)
+            }
+
+            // self.sharedProvider?.reportOutgoingCall(with: uuid!, startedConnectingAt: nil)
+            // self.sharedProvider?.reportOutgoingCall(with: uuid!, connectedAt: nil)
+            print("Reported transaction")
         })
     }
-    
+
+    func connectCall(call: Call) {
+        print("Connecting call with UUID: \(call.uuid.uuidString)")
+        sharedProvider?.reportOutgoingCall(with: call.uuid, connectedAt: nil)
+
+        //   DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        //         // Show the call is connected after 10 seconds
+        //         provider.reportOutgoingCall(with: uuid!, connectedAt: nil)
+        //     }
+
+        // let handle = CXHandle(type: getHandleType(data.handleType), value: data.handle)
+        // let callUpdate: CXCallUpdate = CXCallUpdate()
+        // callUpdate.remoteHandle = handle
+        // callUpdate.supportsDTMF = data.supportsDTMF
+        // callUpdate.supportsHolding = data.supportsHolding
+        // callUpdate.supportsGrouping = data.supportsGrouping
+        // callUpdate.supportsUngrouping = data.supportsUngrouping
+        // callUpdate.hasVideo = data.hasVideo
+        // callUpdate.localizedCallerName = data.callerName
+        // self.sharedProvider?.reportCall(with: uuid!, updated: callUpdate)
+
+        print("Call connected")
+    }
+
     func endCall(call: Call) {
         let endCallAction = CXEndCallAction(call: call.uuid)
         let callTransaction = CXTransaction()
         callTransaction.addAction(endCallAction)
-        //requestCall
-        self.requestCall(callTransaction, action: "endCall")
+        // requestCall
+        requestCall(callTransaction, action: "endCall")
     }
-    
+
     func endAllCalls() {
         let calls = callController.callObserver.calls
         for call in calls {
             let endCallAction = CXEndCallAction(call: call.uuid)
             let callTransaction = CXTransaction()
             callTransaction.addAction(endCallAction)
-            self.requestCall(callTransaction, action: "endAllCalls")
+            requestCall(callTransaction, action: "endAllCalls")
         }
     }
-    
+
     func activeCalls() -> [[String: Any?]] {
         let calls = callController.callObserver.calls
         var json = [[String: Any?]]()
         for call in calls {
-            let callItem = self.callWithUUID(uuid: call.uuid)
-            if(callItem != nil){
+            let callItem = callWithUUID(uuid: call.uuid)
+            if callItem != nil {
                 let item: [String: Any?] = callItem!.data.toJSON()
                 json.append(item)
-            }else {
+            } else {
                 let item: [String: String] = ["id": call.uuid.uuidString]
                 json.append(item)
             }
         }
         return json
     }
-    
-    
+
     func setHold(call: Call, onHold: Bool) {
         let handleCall = CXSetHeldCallAction(call: call.uuid, onHold: onHold)
         let callTransaction = CXTransaction()
         callTransaction.addAction(handleCall)
-        //requestCall
+        // requestCall
     }
-    
-    
+
     private func requestCall(_ transaction: CXTransaction, action: String, completion: ((Bool) -> Void)? = nil) {
-        callController.request(transaction){ error in
+        callController.request(transaction) { error in
             if let error = error {
-                //fail
+                // fail
                 print("Error requesting transaction: \(error)")
-            }else {
-                if(action == "startCall"){
-                    //push notification for Start Call
-                }else if(action == "endCall" || action == "endAllCalls"){
-                    //push notification for End Call
+            } else {
+                if action == "startCall" {
+                    // push notification for Start Call
+                } else if action == "endCall" || action == "endAllCalls" {
+                    // push notification for End Call
                 }
                 completion?(error == nil)
                 print("Requested transaction successfully: \(action)")
             }
         }
     }
-    
-    
+
     private func getHandleType(_ handleType: String?) -> CXHandle.HandleType {
         var typeDefault = CXHandle.HandleType.generic
         switch handleType {
         case "number":
             typeDefault = CXHandle.HandleType.phoneNumber
-            break
         case "email":
             typeDefault = CXHandle.HandleType.emailAddress
         default:
@@ -116,16 +141,15 @@ class CallManager: NSObject {
         return typeDefault
     }
 
-
     static let callsChangedNotification = Notification.Name("CallsChangedNotification")
     var callsChangedHandler: (() -> Void)?
 
-    func callWithUUID(uuid: UUID) -> Call?{
+    func callWithUUID(uuid: UUID) -> Call? {
         guard let idx = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
         return calls[idx]
     }
 
-    func addCall(_ call: Call){
+    func addCall(_ call: Call) {
         calls.append(call)
         call.stateDidChange = { [weak self] in
             guard let strongSelf = self else { return }
@@ -135,15 +159,15 @@ class CallManager: NSObject {
         callsChangedHandler?()
         postCallNotification()
     }
-    
-    func updateCall(_ updatedCall: Call){
+
+    func updateCall(_ updatedCall: Call) {
         guard let idx = calls.firstIndex(where: { $0.uuid == updatedCall.uuid }) else { return }
-        calls.replaceSubrange(idx...idx, with: [updatedCall])
+        calls.replaceSubrange(idx ... idx, with: [updatedCall])
         callsChangedHandler?()
         postCallNotification()
     }
 
-    func removeCall(_ call: Call){
+    func removeCall(_ call: Call) {
         guard let idx = calls.firstIndex(where: { $0 === call }) else { return }
         calls.remove(at: idx)
         callsChangedHandler?()
@@ -156,8 +180,7 @@ class CallManager: NSObject {
         postCallNotification()
     }
 
-    private func postCallNotification(){
+    private func postCallNotification() {
         NotificationCenter.default.post(name: type(of: self).callsChangedNotification, object: self)
     }
-
 }
