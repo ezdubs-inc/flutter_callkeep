@@ -71,7 +71,7 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
             }
             if let getArgs = args as? [String: Any] {
                 data = Data(args: getArgs)
-                displayIncomingCall(data!, fromPushKit: false)
+                displayIncomingCall(data!, fromPushKit: false, completion: {})
             }
             result("OK")
         case "showMissCallNotification":
@@ -131,7 +131,7 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
         return UserDefaults.standard.string(forKey: devicePushTokenVoIP) ?? ""
     }
 
-    @objc public func displayIncomingCall(_ data: Data, fromPushKit: Bool) {
+    @objc public func displayIncomingCall(_ data: Data, fromPushKit: Bool, completion: @escaping () -> Void) {
         isFromPushKit = fromPushKit
         if fromPushKit {
             self.data = data
@@ -142,18 +142,18 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
 
         let callUpdate = CXCallUpdate()
         callUpdate.remoteHandle = handle
-        callUpdate.supportsDTMF = data.supportsDTMF
-        callUpdate.supportsHolding = data.supportsHolding
-        callUpdate.supportsGrouping = data.supportsGrouping
-        callUpdate.supportsUngrouping = data.supportsUngrouping
-        callUpdate.hasVideo = data.hasVideo
-        callUpdate.localizedCallerName = data.callerName
+        // callUpdate.supportsDTMF = data.supportsDTMF
+        // callUpdate.supportsHolding = data.supportsHolding
+        // callUpdate.supportsGrouping = data.supportsGrouping
+        // callUpdate.supportsUngrouping = data.supportsUngrouping
+        // callUpdate.hasVideo = data.hasVideo
+        // callUpdate.localizedCallerName = data.callerName
 
         initCallkitProvider(data)
 
         let uuid = UUID(uuidString: data.uuid)
 
-        configureAudioSession()
+        // configureAudioSession()
         sharedProvider?.reportNewIncomingCall(with: uuid!, update: callUpdate) { error in
             if error == nil {
                 self.configureAudioSession()
@@ -161,8 +161,10 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
                 call.handle = data.handle
                 self.callManager?.addCall(call)
                 self.sendEvent(SwiftCallKeepPlugin.ACTION_CALL_INCOMING, data.toJSON())
-                self.endCallNotExist(data)
+                // self.endCallNotExist(data)
             }
+
+            completion()
         }
     }
 
