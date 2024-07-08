@@ -138,15 +138,15 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
         }
 
         var handle: CXHandle?
-        handle = CXHandle(type: getHandleType(data.handleType), value: data.handle)
+        handle = CXHandle(type: CXHandle.HandleType.phoneNumber, value: data.handle)
 
         let callUpdate = CXCallUpdate()
         callUpdate.remoteHandle = handle
-        // callUpdate.supportsDTMF = data.supportsDTMF
-        // callUpdate.supportsHolding = data.supportsHolding
-        // callUpdate.supportsGrouping = data.supportsGrouping
-        // callUpdate.supportsUngrouping = data.supportsUngrouping
-        // callUpdate.hasVideo = data.hasVideo
+        callUpdate.supportsDTMF = true
+        callUpdate.supportsHolding = false
+        callUpdate.supportsGrouping = false
+        callUpdate.supportsUngrouping = false
+        callUpdate.hasVideo = false
         // callUpdate.localizedCallerName = data.callerName
 
         initCallkitProvider(data)
