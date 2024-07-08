@@ -218,7 +218,7 @@ class IncomingCallActivity : Activity() {
 
         btnAnswer = findViewById(R.id.btnAnswer)
         btnDecline = findViewById(R.id.btnDecline)
-        animateAcceptCall()
+        // animateAcceptCall()
 
         btnAnswer.setOnClickListener {
             onAcceptClick()
