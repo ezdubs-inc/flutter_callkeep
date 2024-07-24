@@ -38,6 +38,7 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
 
     private func sendEvent(_ event: String, _ body: [String: Any?]?) {
         let data = body ?? [:] as [String: Any?]
+        print("[CALLKEEP] Sending event \(data)")
         eventCallbackHandler?.send(event, data)
     }
 
