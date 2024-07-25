@@ -94,7 +94,7 @@ class CallKeep {
   }
 
   Future<void> requestSetMute(String uuid, bool muted) async {
-    await _channel.invokeMethod("connectCall", {'id': uuid, 'muted': muted});
+    await _channel.invokeMethod("requestSetMute", {'id': uuid, 'muted': muted});
   }
 
   /// End all calls.
