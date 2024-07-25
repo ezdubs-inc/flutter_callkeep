@@ -47,6 +47,12 @@ class CallManager: NSObject {
         })
     }
 
+    func requestSetMute(call: Call, muted: Bool) {
+        let action = CXSetMutedCallAction(call: call.uuid, muted: muted)
+        callController.requestTransaction(with: action)
+    }
+
+
     func connectCall(call: Call) {
         print("Connecting call with UUID: \(call.uuid.uuidString)")
         sharedProvider?.reportOutgoingCall(with: call.uuid, connectedAt: nil)

@@ -98,6 +98,20 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
                 endCall(data!)
             }
             result("OK")
+        case "requestSetMute":
+            guard let args = call.arguments
+            else {
+                result(FlutterError.nilArgument)
+                return
+            }
+
+            if let getArgs = args as? [String: Any] {
+                data = Data(args: getArgs)
+                let muted = getArgs["muted"] as? Bool ?? false
+                requestSetMute(data!, muted: muted)
+            }
+
+            result("OK")
         case "connectCall":
             guard let args = call.arguments
             else {
@@ -199,6 +213,16 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
             callManager?.connectCall(call: call!)
         }
     }
+
+    @objc public func requestSetMute(_ data: Data, muted: Bool) {
+        if let uuid = UUID(uuidString: data.uuid) {
+            let call = callManager?.callWithUUID(uuid: uuid)
+
+            if call == nil { return }
+            callManager?.requestSetMute(call: call!, muted: muted)
+        }
+    }
+    
 
     @objc public func activeCalls() -> [[String: Any]]? {
         return callManager?.activeCalls()
