@@ -47,11 +47,16 @@ class CallManager: NSObject {
         })
     }
 
-    func requestSetMute(call: Call, muted: Bool) {
+    func requestSetMute(call: Call, muted: Bool, completion: @escaping (Error?) -> Void) {
         let action = CXSetMutedCallAction(call: call.uuid, muted: muted)
-        callController.requestTransaction(with: action)
-    }
+        let transaction = CXTransaction(action: action)
 
+        print("callkeep - action \(muted)");
+
+        callController.request(transaction) { error in
+            completion(error)
+        }
+    }
 
     func connectCall(call: Call) {
         print("Connecting call with UUID: \(call.uuid.uuidString)")

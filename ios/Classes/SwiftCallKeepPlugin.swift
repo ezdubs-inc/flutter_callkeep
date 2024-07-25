@@ -108,6 +108,7 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
             if let getArgs = args as? [String: Any] {
                 data = Data(args: getArgs)
                 let muted = getArgs["muted"] as? Bool ?? false
+                print("callkeep - \(muted)")
                 requestSetMute(data!, muted: muted)
             }
 
@@ -216,13 +217,23 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
 
     @objc public func requestSetMute(_ data: Data, muted: Bool) {
         if let uuid = UUID(uuidString: data.uuid) {
-            let call = callManager?.callWithUUID(uuid: uuid)
+            if let call = callManager?.callWithUUID(uuid: uuid) {
+                print("callkeep - call \(call.uuid.uuidString)")
 
-            if call == nil { return }
-            callManager?.requestSetMute(call: call!, muted: muted)
+                callManager?.requestSetMute(call: call, muted: muted) { error in
+                    if let error = error {
+                        print("Error setting mute: \(error)")
+                    } else {
+                        print("callkeep - mute done")
+                    }
+                }
+            } else {
+                print("callkeep - no call found")
+            }
+        } else {
+            print("callkeep - invalid UUID string: \(data.uuid)")
         }
     }
-    
 
     @objc public func activeCalls() -> [[String: Any]]? {
         return callManager?.activeCalls()
