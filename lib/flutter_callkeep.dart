@@ -97,6 +97,11 @@ class CallKeep {
     await _channel.invokeMethod("requestSetMute", {'id': uuid, 'muted': muted});
   }
 
+  /// Accept an incoming call with the specified uuid.
+  Future<void> acceptCall(String uuid) async {
+    return _channel.invokeMethod("acceptCall", {'id': uuid});
+  }
+
   /// End all calls.
   Future<void> endAllCalls() async {
     await _channel.invokeMethod("endAllCalls");

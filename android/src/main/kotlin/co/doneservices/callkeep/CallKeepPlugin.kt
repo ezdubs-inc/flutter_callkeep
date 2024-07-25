@@ -154,6 +154,16 @@ class CallKeepPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     )
                     result.success("OK")
                 }
+                "acceptCall" -> {
+                    val data = Data(call.arguments()?: HashMap<String, Any?>())
+                    context?.sendBroadcast(
+                        CallKeepBroadcastReceiver.getIntentAccept(
+                            requireNotNull(context),
+                            data.toBundle()
+                        )
+                    )
+                    result.success("OK")
+                }
                 "endCall" -> {
                     val data = Data(call.arguments()?: HashMap<String, Any?>())
                     context?.sendBroadcast(
