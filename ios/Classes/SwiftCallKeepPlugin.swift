@@ -521,17 +521,28 @@ class EventCallbackHandler: FlutterStreamHandler {
     private var eventSink: FlutterEventSink?
 
     public func send(_ event: String, _ body: Any) {
-         if eventSink == nil {
-            print("[CALLKEEP]: eventSink is null")
-        } else {
-            print("[CALLKEEP]: eventSink is not null")
-        }
+        do {
+            if eventSink == nil {
+                print("[CALLKEEP]: eventSink is null")
+            } else {
+                print("[CALLKEEP]: eventSink is not null")
+            }
 
-        let data: [String: Any] = [
-            "event": event,
-            "body": body,
-        ]
-        eventSink?(data)
+            let data: [String: Any] = [
+                "event": event,
+                "body": body,
+            ]
+            try sendEvent(data)
+        } catch {
+            print("[CALLKEEP]: Error sending event - \(error)")
+        }
+    }
+
+    private func sendEvent(_ data: [String: Any]) throws {
+        guard let eventSink = eventSink else {
+            throw NSError(domain: "EventCallbackHandler", code: 1, userInfo: [NSLocalizedDescriptionKey: "eventSink is null"])
+        }
+        eventSink(data)
     }
 
     func onListen(withArguments _: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
