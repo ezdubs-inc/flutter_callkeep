@@ -521,6 +521,12 @@ class EventCallbackHandler: FlutterStreamHandler {
     private var eventSink: FlutterEventSink?
 
     public func send(_ event: String, _ body: Any) {
+         if eventSink == nil {
+            print("[CALLKEEP]: eventSink is null")
+        } else {
+            print("[CALLKEEP]: eventSink is not null")
+        }
+
         let data: [String: Any] = [
             "event": event,
             "body": body,
