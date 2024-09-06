@@ -51,7 +51,7 @@ class CallManager: NSObject {
         let action = CXSetMutedCallAction(call: call.uuid, muted: muted)
         let transaction = CXTransaction(action: action)
 
-        print("callkeep - action \(muted)");
+        print("callkeep - action \(muted)")
 
         callController.request(transaction) { error in
             completion(error)
@@ -85,7 +85,8 @@ class CallManager: NSObject {
         let endCallAction = CXEndCallAction(call: call.uuid)
         let callTransaction = CXTransaction()
         callTransaction.addAction(endCallAction)
-        // requestCall
+
+        print("callkeep - action \(endCallAction)")
         requestCall(callTransaction, action: "endCall")
     }
 
@@ -157,6 +158,7 @@ class CallManager: NSObject {
 
     func callWithUUID(uuid: UUID) -> Call? {
         guard let idx = calls.firstIndex(where: { $0.uuid == uuid }) else { return nil }
+        print("callkeep - found call \(calls[idx].uuid.uuidString)")
         return calls[idx]
     }
 
@@ -180,6 +182,7 @@ class CallManager: NSObject {
 
     func removeCall(_ call: Call) {
         guard let idx = calls.firstIndex(where: { $0 === call }) else { return }
+        print("callkeep - removed call \(calls[idx].uuid.uuidString)")
         calls.remove(at: idx)
         callsChangedHandler?()
         postCallNotification()

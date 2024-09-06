@@ -423,18 +423,29 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
     }
 
     public func provider(_: CXProvider, perform action: CXEndCallAction) {
+        print("callkeep - end call \(action.callUUID.uuidString)")
         guard let call = callManager?.callWithUUID(uuid: action.callUUID) else {
             action.fail()
             return
         }
         call.endCall()
         callManager?.removeCall(call)
+
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error)")
+        }
+
         if answerCall == nil && outgoingCall == nil {
+            print("callkeep - decline call \(call.uuid.uuidString)")
             sendEvent(SwiftCallKeepPlugin.ACTION_CALL_DECLINE, call.data.toJSON())
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 action.fulfill()
             }
         } else {
+            print("callkeep - manually end call \(call.uuid.uuidString)")
             sendEvent(SwiftCallKeepPlugin.ACTION_CALL_ENDED, call.data.toJSON())
             action.fulfill()
         }
