@@ -177,7 +177,16 @@ public class SwiftCallKeepPlugin: NSObject, FlutterPlugin, CXProviderDelegate {
                 call.handle = data.handle
                 self.callManager?.addCall(call)
                 self.sendEvent(SwiftCallKeepPlugin.ACTION_CALL_INCOMING, data.toJSON())
-                // self.endCallNotExist(data)
+
+                // Add 30-second timer to dismiss the call
+                DispatchQueue.main.asyncAfter(deadline: .now() + 30.0) {
+                    if let existingCall = self.callManager?.callWithUUID(uuid: uuid!) {
+                        if !existingCall.data.isAccepted {
+                            self.endCall(data)
+                            self.sendEvent(SwiftCallKeepPlugin.ACTION_CALL_TIMEOUT, data.toJSON())
+                        }
+                }
+                }
             }
 
             completion()
